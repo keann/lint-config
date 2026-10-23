@@ -1,0 +1,127 @@
+name: Release
+
+on:
+    workflow_dispatch:
+        inputs:
+            bump:
+                description: Version bump
+                type: choice
+                options: [patch, minor, major]
+                required: true
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release
+
+jobs:
+    prepare:
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Read the release notes
+              env:
+                  BUMP: ${{ inputs.bump }}
+              run: |
+                  # GitHub Releases render each line break, so wrapped list items are joined back.
+                  perl -0pe 's/<!--.*?-->//s; s/\A\s+//; s/\s+\z/\n/; s/\n[ \t]+(?![-*+] |\d+\. )(?=\S)/ /g' \
+                    UNRELEASED.md > notes.md
+                  if [ -z "$(tr -d '[:space:]' < notes.md)" ]; then
+                    echo "::error::UNRELEASED.md has no entries, so there is nothing to release."
+                    exit 1
+                  fi
+                  if grep -q '^### .*Breaking Changes' notes.md && [ "$BUMP" != major ]; then
+                    echo "::error::UNRELEASED.md lists breaking changes, so the release needs a major bump."
+                    exit 1
+                  fi
+
+            # `bun lint` ships in Bun canary only, and npm keeps every canary build.
+            - name: Install the Bun from packageManager
+              run: npm install --global "$(jq -r .packageManager package.json)"
+
+            - run: bun install --frozen-lockfile
+            - run: bun fmt --check
+            - run: bun lint
+            - run: bun check
+            - run: bun run test:unit
+            - run: bun run build
+            - run: bun run test:smoke
+
+            - name: Bump the version
+              id: version
+              env:
+                  BUMP: ${{ inputs.bump }}
+              run: echo "version=$(npm version "$BUMP" --no-git-tag-version)" >> "$GITHUB_OUTPUT"
+
+            - name: Pack
+              run: npm pack --pack-destination dist-pack
+
+            - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+              with:
+                  name: release
+                  path: |
+                      dist-pack/*.tgz
+                      notes.md
+                  if-no-files-found: error
+
+    publish:
+        needs: prepare
+        runs-on: ubuntu-latest
+        # The environment's required reviewer approves each publish, and it holds the npm secret.
+        environment: npm
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+              with:
+                  name: release
+
+            - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+              with:
+                  node-version: 24.22.1
+                  registry-url: https://registry.npmjs.org
+                  package-manager-cache: false
+
+            # Trusted publishing needs no token. NPM_TOKEN is only for the first publish.
+            - run: npm publish dist-pack/*.tgz --provenance --access public --ignore-scripts
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    finalize:
+        needs: [prepare, publish]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            # The release commit sits on the commit that was checked and published.
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+              with:
+                  name: release
+                  path: ${{ runner.temp }}/release
+
+            - name: Commit and tag the release
+              env:
+                  VERSION: ${{ needs.prepare.outputs.version }}
+              run: |
+                  npm version "$VERSION" --no-git-tag-version
+                  perl -0ne 'print "$1\n" if /(<!--.*?-->)/s' UNRELEASED.md > UNRELEASED.tmp
+                  mv UNRELEASED.tmp UNRELEASED.md
+                  git config user.name 'github-actions[bot]'
+                  git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+                  git commit --all --message "Release $VERSION"
+                  git tag "$VERSION"
+                  # Fails without pushing anything when main moved since the run started.
+                  git push --atomic origin HEAD:main "$VERSION"
+
+            - name: Create the GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  VERSION: ${{ needs.prepare.outputs.version }}
+              run: gh release create "$VERSION" --title "$VERSION" --notes-file "$RUNNER_TEMP/release/notes.md"
