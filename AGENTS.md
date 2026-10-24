@@ -21,11 +21,13 @@ bun run test:smoke
 
 ## Release notes
 
-A change to `src/` adds an entry to `UNRELEASED.md` under one of its four headings: `⚠️ Breaking
-Changes`, `✨ Added`, `🔧 Changed`, or `🐛 Fixed`. Write each entry for the package's consumers,
-one fact per entry, with the noun or the verb first. A PR without an entry needs the `no changelog`
-label, and CI fails it otherwise. After a release the file holds only a comment that lists the
-headings, so the first entry under a heading adds the heading too.
+A change to the published package (`src/`, the dependencies in `package.json`, or `bun.lock`) adds
+an entry to `UNRELEASED.md` under one of its four headings: `⚠️ Breaking Changes`, `✨ Added`, `🔧
+Changed`, or `🐛 Fixed`. Write each entry for the package's consumers, one fact per entry, with the
+noun or the verb first. A PR without an entry needs the `no changelog` label, and CI fails it
+otherwise. After a release the file holds only a comment that lists the headings, so the first entry
+under a heading adds the heading too.
+
 
 ## Tests
 

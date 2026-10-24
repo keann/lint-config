@@ -16,13 +16,23 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Require an UNRELEASED.md entry for changes to src/
+            # The published package changes with src/, with the dependencies in package.json, and
+            # with bun.lock, which pins the bundled plugins' own dependencies.
+            - name: Require an UNRELEASED.md entry for changes to the published package
               env:
                   BASE: ${{ github.event.pull_request.base.sha }}
                   HEAD: ${{ github.event.pull_request.head.sha }}
               run: |
-                  changed=$(git diff --name-only "$BASE...$HEAD")
-                  if grep -q '^src/' <<< "$changed" && ! grep -qx 'UNRELEASED.md' <<< "$changed"; then
-                    echo "::error::This PR changes src/. Add its entries to UNRELEASED.md, or add the 'no changelog' label."
-                    exit 1
+                  base=$(git merge-base "$BASE" "$HEAD")
+                  changed=$(git diff --name-only "$base" "$HEAD")
+                  dependencies() {
+                    { git show "$1:package.json" 2>/dev/null || echo '{}'; } |
+                      jq --sort-keys '{ dependencies, peerDependencies, bundleDependencies }'
+                  }
+                  if grep -q '^src/' <<< "$changed" || grep -qx 'bun.lock' <<< "$changed" ||
+                    [ "$(dependencies "$base")" != "$(dependencies "$HEAD")" ]; then
+                    if ! grep -qx 'UNRELEASED.md' <<< "$changed"; then
+                      echo "::error::This PR changes the published package. Add its entries to UNRELEASED.md, or add the 'no changelog' label."
+                      exit 1
+                    fi
                   fi

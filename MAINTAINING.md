@@ -90,9 +90,11 @@ its canary note.
 
 ## Releasing
 
-Each PR that changes `src/` adds its entries to `UNRELEASED.md`, under `### ⚠️ Breaking Changes`,
-`### ✨ Added`, `### 🔧 Changed`, or `### 🐛 Fixed`. CI fails such a PR without them, unless it
-has the `no changelog` label.
+Each PR that changes the published package (`src/`, the dependencies in `package.json`, or
+`bun.lock`) adds its entries to `UNRELEASED.md`, under `### ⚠️ Breaking Changes`, `### ✨ Added`,
+`### 🔧 Changed`, or `### 🐛 Fixed`. CI fails such a PR without them, unless it has the `no changelog`
+label.
+
 
 The Release workflow in the Actions tab publishes a release. It takes a `patch`, `minor`, or
 `major` bump, and one run:
