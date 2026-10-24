@@ -57,8 +57,11 @@ jobs:
                   BUMP: ${{ inputs.bump }}
               run: echo "version=$(npm version "$BUMP" --no-git-tag-version)" >> "$GITHUB_OUTPUT"
 
+            # npm pack fails when the destination folder doesn't exist.
             - name: Pack
-              run: npm pack --pack-destination dist-pack
+              run: |
+                  mkdir -p dist-pack
+                  npm pack --pack-destination dist-pack
 
             - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
               with:
