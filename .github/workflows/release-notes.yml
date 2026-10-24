@@ -1,0 +1,38 @@
+name: Release notes
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+    contents: read
+
+jobs:
+    unreleased:
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no changelog') }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 0
+
+            # The published package changes with src/, with the dependencies in package.json, and
+            # with bun.lock, which pins the bundled plugins' own dependencies.
+            - name: Require an UNRELEASED.md entry for changes to the published package
+              env:
+                  BASE: ${{ github.event.pull_request.base.sha }}
+                  HEAD: ${{ github.event.pull_request.head.sha }}
+              run: |
+                  base=$(git merge-base "$BASE" "$HEAD")
+                  changed=$(git diff --name-only "$base" "$HEAD")
+                  dependencies() {
+                    { git show "$1:package.json" 2>/dev/null || echo '{}'; } |
+                      jq --sort-keys '{ dependencies, peerDependencies, bundleDependencies }'
+                  }
+                  if grep -q '^src/' <<< "$changed" || grep -qx 'bun.lock' <<< "$changed" ||
+                    [ "$(dependencies "$base")" != "$(dependencies "$HEAD")" ]; then
+                    if ! grep -qx 'UNRELEASED.md' <<< "$changed"; then
+                      echo "::error::This PR changes the published package. Add its entries to UNRELEASED.md, or add the 'no changelog' label."
+                      exit 1
+                    fi
+                  fi

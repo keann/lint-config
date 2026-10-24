@@ -1,0 +1,72 @@
+import { defineConfig } from 'oxlint'
+
+import restrictedGlobals from '../helpers/restrictedGlobals.ts'
+
+/**
+ * The `restriction` category bans language and library features, so each rule is picked by hand.
+ * The category is off: only the rules set to `'error'` here are on.
+ */
+export default defineConfig({
+    categories: {
+        restriction: 'off',
+    },
+    rules: {
+        'eslint/no-alert': 'error',
+        'eslint/no-console': ['error', { allow: ['warn', 'error'] }],
+        'eslint/no-empty': 'error',
+        'eslint/no-empty-function': 'error',
+        'eslint/no-implicit-globals': 'error',
+        'eslint/no-param-reassign': [
+            'error',
+            { props: true, ignorePropertyModificationsFor: ['acc', 'e'] },
+        ],
+        'eslint/no-proto': 'error',
+        'eslint/no-regex-spaces': 'error',
+        'eslint/no-restricted-globals': ['error', ...restrictedGlobals],
+        'eslint/no-sequences': 'error',
+        'eslint/no-use-before-define': ['error', { functions: false }],
+        'eslint/no-var': 'error',
+        'eslint/no-void': ['error', { allowAsStatement: true }],
+        'eslint/unicode-bom': 'error',
+        'import/no-amd': 'error',
+        'import/no-cycle': 'error',
+        'import/no-dynamic-require': 'error',
+        'import/no-webpack-loader-syntax': 'error',
+        'jsdoc/check-access': 'error',
+        'jsdoc/empty-tags': 'error',
+        'jsx-a11y/anchor-ambiguous-text': 'error',
+        'oxc/bad-bitwise-operator': 'error',
+        'oxc/no-const-enum': 'error',
+        'promise/spec-only': 'error',
+        'react/button-has-type': 'error',
+        'react/jsx-filename-extension': ['error', { extensions: ['.tsx'] }],
+        'react/no-clone-element': 'error',
+        'react/no-danger': 'error',
+        'react/no-react-children': 'error',
+        'react/no-unknown-property': 'error',
+        'react/only-export-components': 'error',
+        'react/prefer-function-component': 'error',
+        'react/syntax': 'error',
+        'react/unsupported-syntax': 'error',
+        'typescript/no-dynamic-delete': 'error',
+        'typescript/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
+        'typescript/no-explicit-any': 'error',
+        'typescript/no-import-type-side-effects': 'error',
+        'typescript/no-invalid-void-type': 'error',
+        'typescript/no-namespace': 'error',
+        'typescript/no-non-null-asserted-nullish-coalescing': 'error',
+        'typescript/no-non-null-assertion': 'error',
+        'typescript/non-nullable-type-assertion-style': 'error',
+        'typescript/prefer-literal-enum-member': 'error',
+        'typescript/use-unknown-in-catch-callback-variable': 'error',
+        'unicorn/no-abusive-eslint-disable': 'error',
+        'unicorn/no-anonymous-default-export': 'error',
+        'unicorn/no-document-cookie': 'error',
+        'unicorn/no-magic-array-flat-depth': 'error',
+        'unicorn/no-useless-error-capture-stack-trace': 'error',
+        'unicorn/prefer-modern-math-apis': 'error',
+        'unicorn/prefer-module': 'error',
+        'unicorn/prefer-node-protocol': 'error',
+        'unicorn/prefer-number-properties': ['error', { checkNaN: false }],
+    },
+})

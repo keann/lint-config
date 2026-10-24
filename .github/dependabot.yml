@@ -1,0 +1,11 @@
+# Dependabot updates only the pinned actions. The npm dependencies change what the published
+# package reports, so they are bumped by hand (see MAINTAINING.md).
+version: 2
+updates:
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: monthly
+      groups:
+          actions:
+              patterns: ['*']

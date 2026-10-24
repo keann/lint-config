@@ -1,0 +1,70 @@
+{
+  "name": "@keann/lint-config",
+  "version": "0.0.0",
+  "description": "Strict, type-aware lint config for oxlint and bun lint, with TypeScript, React, and Vitest presets",
+  "keywords": [
+    "bun",
+    "bun-lint",
+    "lint",
+    "oxlint",
+    "oxlint-config"
+  ],
+  "homepage": "https://github.com/keann/lint-config#readme",
+  "bugs": "https://github.com/keann/lint-config/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Alex K.",
+    "email": "code@keann.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keann/lint-config.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./dist/bun.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bunup",
+    "prepublishOnly": "bun run build && bun run test:unit && bun run test:smoke",
+    "test:smoke": "bun test tests/smoke",
+    "test:unit": "bun test src"
+  },
+  "dependencies": {
+    "@e18e/eslint-plugin": "0.8.1",
+    "eslint-plugin-de-morgan": "2.2.1",
+    "eslint-plugin-jsdoc": "65.4.2",
+    "eslint-plugin-react-you-might-not-need-an-effect": "1.0.2"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "bunup": "0.16.32",
+    "oxlint": "1.89.0",
+    "oxlint-tsgolint": "7.0.2004"
+  },
+  "peerDependencies": {
+    "oxlint": "^1.89.0",
+    "oxlint-tsgolint": "^7.0.2004"
+  },
+  "peerDependenciesMeta": {
+    "oxlint": {
+      "optional": true
+    },
+    "oxlint-tsgolint": {
+      "optional": true
+    }
+  },
+  "bundleDependencies": [
+    "eslint-plugin-de-morgan",
+    "eslint-plugin-jsdoc",
+    "eslint-plugin-react-you-might-not-need-an-effect"
+  ],
+  "packageManager": "bun@1.4.4-canary.20261022.1"
+}
