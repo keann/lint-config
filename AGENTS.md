@@ -28,7 +28,6 @@ noun or the verb first. A PR without an entry needs the `no changelog` label, an
 otherwise. After a release the file holds only a comment that lists the headings, so the first entry
 under a heading adds the heading too.
 
-
 ## Tests
 
 Test files import from `vitest`, and `bun test` serves that import from `bun:test`.

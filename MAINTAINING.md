@@ -95,7 +95,6 @@ Each PR that changes the published package (`src/`, the dependencies in `package
 `### 🔧 Changed`, or `### 🐛 Fixed`. CI fails such a PR without them, unless it has the `no changelog`
 label.
 
-
 The Release workflow in the Actions tab publishes a release. It takes a `patch`, `minor`, or
 `major` bump, and one run:
 
