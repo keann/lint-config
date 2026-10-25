@@ -1,6 +1,6 @@
 {
   "name": "@keann/lint-config",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Strict, type-aware lint config for oxlint and bun lint, with TypeScript, React, and Vitest presets",
   "keywords": [
     "bun",
