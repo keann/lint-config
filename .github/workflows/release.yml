@@ -90,8 +90,9 @@ jobs:
                   registry-url: https://registry.npmjs.org
                   package-manager-cache: false
 
-            # Trusted publishing needs no token. NPM_TOKEN is only for the first publish.
-            - run: npm publish dist-pack/*.tgz --provenance --access public --ignore-scripts
+            # Trusted publishing needs no token. NPM_TOKEN is only for the first publish. The `./`
+            # keeps npm from reading `dist-pack/<file>` as a GitHub repo.
+            - run: npm publish ./dist-pack/*.tgz --provenance --access public --ignore-scripts
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
