@@ -101,9 +101,12 @@ The Release workflow in the Actions tab publishes a release. It takes a `patch`,
 1. Stops when `UNRELEASED.md` has no entries, or has `⚠️ Breaking Changes` with a patch or minor
    bump.
 2. Runs every check and builds.
-3. Waits for approval in the `npm` environment, then publishes with provenance.
-4. Commits the new `version` and the emptied `UNRELEASED.md` to `main`, and tags `vX.Y.Z`.
-5. Creates the GitHub Release with the entries as its body.
+3. Waits for approval in the `npm` environment, then stages the version on npm with provenance.
+4. Waits up to an hour for the staged version to be approved on npmjs.com, which takes the
+   maintainer's 2FA.
+5. Commits the new `version` and the emptied `UNRELEASED.md` to `main`, and tags `vX.Y.Z`.
+6. Creates the GitHub Release with the entries as its body.
 
-The publish comes before the commit, so a declined approval leaves `main` untouched. The publish
-step stays in `release.yml`, because npm's trusted publisher names that file.
+The version reaches npm before the commit, so a declined approval leaves `main` untouched. An
+approval after the hour fails step 4, and re-running the run's failed jobs finishes the release.
+The staging step stays in `release.yml`, because npm's trusted publisher names that file.
