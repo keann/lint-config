@@ -90,9 +90,10 @@ jobs:
                   registry-url: https://registry.npmjs.org
                   package-manager-cache: false
 
-            # Trusted publishing needs no token. NPM_TOKEN is only for the first publish. The `./`
-            # keeps npm from reading `dist-pack/<file>` as a GitHub repo.
-            - run: npm publish ./dist-pack/*.tgz --provenance --access public --ignore-scripts
+            # Staging needs no one-time password. The version goes live once a maintainer approves it
+            # on npmjs.com with 2FA. Trusted publishing needs no token, so NPM_TOKEN is only for the
+            # first release. The `./` keeps npm from reading `dist-pack/<file>` as a GitHub repo.
+            - run: npm stage publish ./dist-pack/*.tgz --provenance --access public --ignore-scripts
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -109,6 +110,16 @@ jobs:
               with:
                   name: release
                   path: ${{ runner.temp }}/release
+
+            # A missed approval fails this step. Approve the staged version on npmjs.com, then re-run
+            # the failed jobs of this run.
+            - name: Wait for the approved version on npm
+              timeout-minutes: 60
+              env:
+                  VERSION: ${{ needs.prepare.outputs.version }}
+              run: |
+                  name=$(jq -r .name package.json)
+                  until npm view "$name@${VERSION#v}" version > /dev/null 2>&1; do sleep 30; done
 
             - name: Commit and tag the release
               env:
